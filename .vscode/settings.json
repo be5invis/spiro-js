@@ -1,0 +1,27 @@
+{
+	"cSpell.words": [
+		"spiros",
+		"typable"
+	],
+
+	"codemetrics.nodeconfiguration.ReturnStatement": 0,
+	"codemetrics.nodeconfiguration.CaseClause": 0,
+	"codemetrics.nodeconfiguration.DefaultClause": 0,
+	"codemetrics.nodeconfiguration.ContinueStatement": 0,
+	"codemetrics.nodeconfiguration.BreakStatement": 0,
+	"codemetrics.basics.CodeLensHiddenUnder": 10,
+	"codemetrics.basics.ComplexityLevelNormal": 10,
+	"codemetrics.basics.ComplexityLevelHigh": 20,
+	"codemetrics.basics.ComplexityLevelExtreme": 30,
+	"codemetrics.basics.ComplexityColorLow": "#4a4190",
+	"codemetrics.basics.ComplexityColorNormal": "#329af0",
+	"codemetrics.basics.ComplexityColorHigh": "#ac4d00",
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		"node_modules": true
+	}
+}

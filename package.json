@@ -1,0 +1,57 @@
+{
+	"name": "spiro",
+	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
+	"version": "1.0.2",
+	"description": "JavaScript port of Raph's Spiro",
+	"keywords": [
+		"bezier",
+		"curve",
+		"spiro",
+		"libspiro",
+		"nurbs"
+	],
+	"homepage": "https://github.com/be5invis/libspiro-js",
+	"author": {
+		"name": "Belleve Invis",
+		"email": "belleve@typeof.net"
+	},
+	"bugs": {
+		"url": "https://github.com/be5invis/libspiro-js/issues"
+	},
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "https://www.opensource.org/licenses/mit-license.php"
+		},
+		{
+			"type": "Apache-2.0",
+			"url": "https://opensource.org/licenses/apache2.0.php"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/be5invis/libspiro-js.git"
+	},
+	"scripts": {
+		"clean": "rimraf coverage build lib payloads",
+		"build": "tsc -p tsconfig.json",
+		"watch": "tsc -w -p tsconfig.json",
+		"prepack": "npm run clean && tsc -p tsconfig.release.json",
+		"test": "ava --verbose"
+	},
+	"dependencies": {
+		"tslib": "^1.9.3"
+	},
+	"devDependencies": {
+		"ava": "^2.4.0",
+		"rimraf": "~2.6.2",
+		"tslint": "^5.11.0",
+		"typescript": "^3.3.0"
+	},
+	"ava": {
+		"files": [
+			"lib/**/*.test.js"
+		]
+	}
+}

@@ -1,0 +1,9 @@
+src
+.vscode
+**/*.js.map
+tsconfig.json
+tsconfig.release.json
+tslint.json
+.editorconfig
+jest.config
+.prettierrc.yaml
