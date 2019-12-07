@@ -105,16 +105,22 @@ export function ksBend(ks: SpiroK) {
 
 export function ksTheta(s0: number, s1: number, ks: SpiroK) {
 	const s = (s0 + s1) / 2;
-	return s * ks[0] + (1 / 2) * s * ks[1] + (1 / 6) * s * s * ks[2] + (1 / 24) * s * s * s * ks[3];
+	return (
+		s * ks[0] +
+		(1 / 2) * s * s * ks[1] +
+		(1 / 6) * s * s * s * ks[2] +
+		(1 / 24) * s * s * s * s * ks[3]
+	);
 }
 
 function divideKs(s0: number, s1: number, ks: SpiroK): SpiroK {
 	const s = (s0 + s1) / 2;
+	const t = s1 - s0;
 	return [
-		(s1 - s0) * (ks[0] + s * ks[1] + (1 / 2) * s * s * ks[2] + (1 / 24) * s * s * s * ks[3]),
-		(s1 - s0) * (s1 - s0) * (ks[1] + s * ks[2] + (1 / 2) * s * s * ks[3]),
-		(s1 - s0) * (s1 - s0) * (s1 - s0) * (ks[2] + s * ks[3]),
-		(s1 - s0) * (s1 - s0) * (s1 - s0) * (s1 - s0) * ks[3]
+		t * (ks[0] + s * ks[1] + (1 / 2) * s * s * ks[2] + (1 / 6) * s * s * s * ks[3]),
+		t * t * (ks[1] + s * ks[2] + (1 / 2) * s * s * ks[3]),
+		t * t * t * (ks[2] + s * ks[3]),
+		t * t * t * t * ks[3]
 	];
 }
 
