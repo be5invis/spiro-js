@@ -2,14 +2,13 @@ import test from "ava";
 
 import { spiroToArcs } from "./index";
 
-test("Derivative and eval works", t => {
+test("Derivative and eval works", (t) => {
 	const arcs = spiroToArcs(
-		null,
 		[
 			{ type: "g4", x: 0, y: 0 },
 			{ type: "g4", x: 100, y: 0 },
 			{ type: "g4", x: 100, y: 100 },
-			{ type: "g4", x: 0, y: 100 }
+			{ type: "g4", x: 0, y: 100 },
 		],
 		true
 	);

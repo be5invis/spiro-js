@@ -1,20 +1,33 @@
-export interface IBezierContext {
+import { Point } from "./base";
+import { SpiroArc } from "./spiro-arc";
+
+// Arc context
+export interface IArcContext {
+	beginShape(): void;
+	endShape(): void;
 	moveTo(x: number, y: number): void;
-	lineTo(x: number, y: number, subdivided: boolean): void;
-	curveTo(x1: number, y1: number, x2: number, y2: number, subdivided: boolean): void;
-	cubicTo(
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number,
-		x: number,
-		y: number,
-		subdivided: boolean
-	): void;
+	arcTo(arc: SpiroArc, x: number, y: number, isStraight: boolean): void;
+}
+export class SimplyCollectArcContext implements IArcContext {
+	public arcs: SpiroArc[] = [];
+	beginShape() {}
+	endShape() {}
+	moveTo() {}
+	arcTo(arc: SpiroArc) {
+		this.arcs.push(arc);
+	}
+}
+
+// Bezier context
+export interface IBezierContext {
+	beginShape(): void;
+	endShape(): void;
+	moveTo(x: number, y: number): void;
+	lineTo(x: number, y: number): void;
+	curveTo(x1: number, y1: number, x2: number, y2: number): void;
+	cubicTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number): void;
 }
 export type KnotCallback<C> = (this: C, x0: number, y0: number, x1?: number, y1?: number) => void;
-
-export type Point = { x: number; y: number };
 
 export type LineArc = {
 	order: 1;
@@ -40,6 +53,9 @@ export class DefaultBezierContext implements IBezierContext {
 	lastx = 0;
 	lasty = 0;
 
+	beginShape() {}
+	endShape() {}
+
 	moveTo(x: number, y: number) {
 		this.lastx = x;
 		this.lasty = y;
@@ -49,7 +65,7 @@ export class DefaultBezierContext implements IBezierContext {
 		const arc: LineArc = {
 			order: 1,
 			start: { x: this.lastx, y: this.lasty },
-			end: { x: x, y: y }
+			end: { x: x, y: y },
 		};
 		this.strands.push(arc);
 		this.lastx = x;
@@ -60,7 +76,7 @@ export class DefaultBezierContext implements IBezierContext {
 			order: 2,
 			start: { x: this.lastx, y: this.lasty },
 			c1: { x: x1, y: y1 },
-			end: { x: x, y: y }
+			end: { x: x, y: y },
 		};
 		this.strands.push(arc);
 		this.lastx = x;
@@ -72,7 +88,7 @@ export class DefaultBezierContext implements IBezierContext {
 			start: { x: this.lastx, y: this.lasty },
 			c1: { x: x1, y: y1 },
 			c2: { x: x2, y: y2 },
-			end: { x: x, y: y }
+			end: { x: x, y: y },
 		};
 		this.strands.push(arc);
 		this.lastx = x;

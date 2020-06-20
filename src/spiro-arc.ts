@@ -1,4 +1,4 @@
-import { Point } from "./context";
+import { Point } from "./base";
 
 const N = 4;
 export type SpiroK = [number, number, number, number];
@@ -120,7 +120,7 @@ function divideKs(s0: number, s1: number, ks: SpiroK): SpiroK {
 		t * (ks[0] + s * ks[1] + (1 / 2) * s * s * ks[2] + (1 / 6) * s * s * s * ks[3]),
 		t * t * (ks[1] + s * ks[2] + (1 / 2) * s * s * ks[3]),
 		t * t * t * (ks[2] + s * ks[3]),
-		t * t * t * t * ks[3]
+		t * t * t * t * ks[3],
 	];
 }
 
@@ -168,7 +168,7 @@ export class SpiroArc {
 			{ x: this.x0, y: this.y0 },
 			{ x: this.x0 + this.deriveX0 / 3, y: this.y0 + this.deriveY0 / 3 },
 			{ x: this.x1 - this.deriveX1 / 3, y: this.y1 - this.deriveY1 / 3 },
-			{ x: this.x1, y: this.y1 }
+			{ x: this.x1, y: this.y1 },
 		];
 	}
 
@@ -203,7 +203,7 @@ export class SpiroArc {
 
 		return [
 			new SpiroArc(kSub, this.x0, this.y0, mid.x, mid.y),
-			new SpiroArc(kSubRear, mid.x, mid.y, this.x1, this.y1)
+			new SpiroArc(kSubRear, mid.x, mid.y, this.x1, this.y1),
 		];
 	}
 }
