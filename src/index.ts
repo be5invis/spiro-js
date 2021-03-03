@@ -13,6 +13,7 @@ export * from "./context";
 export { SpiroArc, SpiroK } from "./spiro-arc";
 
 const MAX_DEPTH = 7;
+const MAX_STOPS = 32;
 
 export type PointType = "corner" | "open" | "open_end" | "left" | "right" | "g2" | "g4";
 export type Knot<C> = Point & { type: PointType; af?: KnotCallback<C> };
@@ -432,100 +433,43 @@ function solve_spiro<C>(s: SpiroSeg<C>[], nseg: number) {
 	return 0;
 }
 
-function findIntersection(p1: Point, c1: Point, c2: Point, p2: Point): null | Point {
-	let d1: Point = { x: c1.x - p1.x, y: c1.y - p1.y };
-	let d2: Point = { x: c2.x - p2.x, y: c2.y - p2.y };
-
-	const det = d2.x * d1.y - d2.y * d1.x;
-	if (Math.abs(det) < 1e-6) return null;
-	const u = ((p2.y - p1.y) * d2.x - (p2.x - p1.x) * d2.y) / det;
-	const v = ((p2.y - p1.y) * d1.x - (p2.x - p1.x) * d1.y) / det;
-	if (u <= 0 || v <= 0) return null;
-	return {
-		x: p1.x + d1.x * u,
-		y: p1.y + d1.y * u,
-	};
-}
-
-function toQuad2(
-	x0: number,
-	y0: number,
-	x1: number,
-	y1: number,
-	x2: number,
-	y2: number,
-	x3: number,
-	y3: number,
-	bc: IBezierContext
-) {
-	// construct a on-off-off-on sequence
-	const sx = x0 + (3 / 4) * (x1 - x0);
-	const sy = y0 + (3 / 4) * (y1 - y0);
-	const fx = x3 + (3 / 4) * (x2 - x3);
-	const fy = y3 + (3 / 4) * (y2 - y3);
-	bc.curveTo(sx, sy, (sx + fx) / 2, (sy + fy) / 2);
-	bc.curveTo(fx, fy, x3, y3);
-}
-
-function toQuad4(
-	x0: number,
-	y0: number,
-	x1: number,
-	y1: number,
-	x2: number,
-	y2: number,
-	x3: number,
-	y3: number,
-	bc: IBezierContext
-) {
-	// construct a on-off-off-off-off-on sequence
-	const sx = x0 + (3 / 8) * (x1 - x0);
-	const sy = y0 + (3 / 8) * (y1 - y0);
-	const p = (1 / 32) * (7 * x0 + 15 * x1 + 9 * x2 + x3);
-	const q = (1 / 32) * (7 * y0 + 15 * y1 + 9 * y2 + y3);
-	const r = (1 / 32) * (x0 + 9 * x1 + 15 * x2 + 7 * x3);
-	const s = (1 / 32) * (y0 + 9 * y1 + 15 * y2 + 7 * y3);
-	const fx = x3 + (3 / 8) * (x2 - x3);
-	const fy = y3 + (3 / 8) * (y2 - y3);
-	bc.curveTo(sx, sy, (sx + p) / 2, (sy + q) / 2);
-	bc.curveTo(p, q, (r + p) / 2, (s + q) / 2);
-	bc.curveTo(r, s, (r + fx) / 2, (s + fy) / 2);
-	bc.curveTo(fx, fy, x3, y3);
-}
-
 const ARC_STRAIGHT_EPSILON = 1e-8;
 function spiroSegToBPath<C extends IBezierContext>(
 	arc: SpiroArc,
 	bc: C,
-	depth: number,
-	isQuad: boolean,
 	af: undefined | KnotCallback<C>,
 	delta: number
 ) {
 	if (arc.bend <= ARC_STRAIGHT_EPSILON) {
 		bc.lineTo(arc.x1, arc.y1);
-	} else if (depth > MAX_DEPTH || arc.bend < delta) {
-		const [a, b, c, d] = arc.toCubicBezier();
-		if (isQuad) {
-			if (arc.bend > 0.5 * delta) {
-				toQuad2(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y, bc);
-			} else {
-				let pt = findIntersection(a, b, c, d);
-				if (pt) {
-					bc.curveTo(pt.x, pt.y, d.x, d.y);
-				} else {
-					toQuad2(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y, bc);
-				}
-			}
-		} else {
+	} else {
+		const subdivision = findSubdivision(arc, delta);
+		for (const part of subdivision) {
+			const [a, b, c, d] = part.toCubicBezier();
 			bc.cubicTo(b.x, b.y, c.x, c.y, d.x, d.y);
 		}
-	} else {
-		const [pre, post] = arc.subdivide(1 / 2);
-		spiroSegToBPath(pre, bc, depth + 1, isQuad, undefined, delta);
-		spiroSegToBPath(post, bc, depth + 1, isQuad, undefined, delta);
 	}
 	if (af) af.call(bc, arc.x0, arc.y0, arc.x1, arc.y1);
+}
+function findSubdivision(arc: SpiroArc, delta: number) {
+	out: for (let stops = 1; stops < MAX_STOPS; stops++) {
+		let sink: SpiroArc[] = [];
+		uniformSubdivide(arc, stops, sink);
+		for (const part of sink) if (part.bend > delta) continue out;
+		return sink;
+	}
+
+	// Use max stops
+	let sink: SpiroArc[] = [];
+	uniformSubdivide(arc, MAX_STOPS, sink);
+	return sink;
+}
+function uniformSubdivide(arc: SpiroArc, stops: number, sink: SpiroArc[]) {
+	for (; stops > 1; stops--) {
+		const f = arc.subdivide(1 / stops);
+		sink.push(f[0]), (arc = f[1]);
+	}
+	sink.push(arc);
 }
 
 function run_spiro<C>(src: Knot<C>[], n: number) {
@@ -574,7 +518,6 @@ function spiroToBPath<C extends IBezierContext>(
 	s: SpiroSeg<C>[],
 	n: number,
 	bc: C,
-	isQuad: boolean = false,
 	delta: number = 1
 ) {
 	const nSegments = s[n - 1].type === "open_end" ? n - 1 : n;
@@ -587,7 +530,7 @@ function spiroToBPath<C extends IBezierContext>(
 			bc.moveTo(x0, y0);
 			if (s[0].af) s[0].af.call(bc, x0, y0);
 		}
-		spiroSegToBPath(new SpiroArc(s[i].ks, x0, y0, x1, y1), bc, 0, isQuad, s[i + 1].af, delta);
+		spiroSegToBPath(new SpiroArc(s[i].ks, x0, y0, x1, y1), bc, s[i + 1].af, delta);
 	}
 }
 
@@ -614,13 +557,12 @@ export function spiroToBezierOnContext<C extends IBezierContext>(
 	spiros: Knot<C>[],
 	isClosed: boolean,
 	bc: C,
-	isQuad: boolean = false,
 	delta: number = 1
 ) {
 	if (bc.beginShape) bc.beginShape();
 	if (spiros.length) {
 		const { s, n } = computeSegments(spiros, isClosed);
-		spiroToBPath(s, n, bc, isQuad, delta);
+		spiroToBPath(s, n, bc, delta);
 	}
 	if (bc.endShape) bc.endShape();
 }

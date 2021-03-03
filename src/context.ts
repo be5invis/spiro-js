@@ -24,7 +24,6 @@ export interface IBezierContext {
 	endShape(): void;
 	moveTo(x: number, y: number): void;
 	lineTo(x: number, y: number): void;
-	curveTo(x1: number, y1: number, x2: number, y2: number): void;
 	cubicTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number): void;
 }
 export type KnotCallback<C> = (this: C, x0: number, y0: number, x1?: number, y1?: number) => void;
