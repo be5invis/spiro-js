@@ -548,7 +548,7 @@ export function spiroToArcsOnContext<C extends IArcContext>(
 	if (context.beginShape) context.beginShape();
 	if (spiros.length) {
 		const { s, n } = computeSegments(spiros, isClosed);
-		return collectSpiroArcs(s, n, context);
+		collectSpiroArcs(s, n, context);
 	}
 	if (context.endShape) context.endShape();
 }
